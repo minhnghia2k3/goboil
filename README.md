@@ -10,10 +10,15 @@ and boilerplate code, so you can start coding right away.
 ![demo](https://s11.gifyu.com/images/Soypn.gif)
 
 ## 🔧 Installation
+To install `goboil`, run the following command:
 
     go install github.com/minhnghia2k3/goboil
 
-## 🔨 Basic usage
+This command will download and install `goboil` as a binary into your `$GOPATH/bin` directory.
+
+
+## 🔨 Basic Usage
+Once installed, you can run `goboil` from anywhere in your terminal:
 
     goboil
 

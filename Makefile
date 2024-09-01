@@ -1,5 +1,5 @@
 gobuild: gotidy gosec gocritic golint
-	go build -o "./build/goboil"
+	go build -o "./build/goboil" ./cmd/goboil
 
 gosec:
 	gosec ./...
