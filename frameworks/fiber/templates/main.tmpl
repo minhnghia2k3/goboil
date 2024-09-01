@@ -1,0 +1,33 @@
+package main
+
+
+import (
+	"{{ .ModuleName }}/config"
+	"{{ .ModuleName }}/routes"
+	"log"
+	"os"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
+)
+
+
+func main() {
+// Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+    // Initialize Fiber app
+    app := fiber.New()
+
+    // Load configuration
+    config.Setup()
+
+    // Register routes
+    routes.SetupRoutes(app)
+
+    // Start server
+    log.Fatal(app.Listen(os.Getenv("PORT"))
+}

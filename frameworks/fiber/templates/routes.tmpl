@@ -1,0 +1,15 @@
+package routes
+
+import (
+	"{{ .ModuleName }}/controllers"
+	"{{ .ModuleName }}/middlewares"
+
+	"github.com/gofiber/fiber/v2"
+)
+
+func SetupRoutes(app *fiber.App) {
+	api := app.Group("/api")
+
+	api.Get("/users", controllers.GetUsers)
+	api.Post("/users", middlewares.Auth, controllers.CreateUser)
+}

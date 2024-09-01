@@ -1,0 +1,19 @@
+package controllers
+
+import "github.com/gofiber/fiber/v2"
+
+func GetUsers(c *fiber.Ctx) error {
+	// Example: Fetch users from the database
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data":   []string{"User1", "User2"},
+	})
+}
+
+func CreateUser(c *fiber.Ctx) error {
+	// Example: Create a new user in the database
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"message": "User created successfully",
+	})
+}

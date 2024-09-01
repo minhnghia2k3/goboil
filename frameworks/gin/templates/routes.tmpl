@@ -1,0 +1,21 @@
+package routes
+
+import (
+	"github.com/gin-gonic/gin"
+	"{{ .ModuleName }}/controllers"
+	"{{ .ModuleName }}/middlewares"
+)
+
+// SetupRouter sets up the Gin router and routes
+func SetupRouter() *gin.Engine {
+	r := gin.Default()
+
+	// Example route group
+	api := r.Group("/api")
+	{
+		api.GET("/users", controllers.GetUsers)
+		api.POST("/users", middlewares.AuthMiddleware(), controllers.CreateUser)
+	}
+
+	return r
+}

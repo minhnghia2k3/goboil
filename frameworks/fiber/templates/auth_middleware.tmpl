@@ -1,0 +1,8 @@
+package middlewares
+
+import "github.com/gofiber/fiber/v2"
+
+func Auth(c *fiber.Ctx) error {
+	// Example: Check for authentication token
+	return c.Next()
+}

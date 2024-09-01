@@ -1,0 +1,13 @@
+package middlewares
+
+import (
+	"github.com/gin-gonic/gin"
+)
+
+// AuthMiddleware is an example middleware that checks authentication
+func AuthMiddleware() gin.HandlerFunc {
+	// Do something
+	return func(c *gin.Context) {
+		c.Next()
+	}
+}

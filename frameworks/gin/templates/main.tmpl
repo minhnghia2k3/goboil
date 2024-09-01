@@ -1,0 +1,17 @@
+package main
+
+import (
+	"{{ .ModuleName }}/config"
+	"{{ .ModuleName }}/routes"
+)
+
+func main() {
+	// Initialize the configuration
+	config.InitConfig()
+
+	// Set up the router
+	r := routes.SetupRouter()
+
+	// Run the server
+	r.Run() // Default on 0.0.0.0:8080
+}

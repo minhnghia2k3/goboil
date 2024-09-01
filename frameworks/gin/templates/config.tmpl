@@ -1,0 +1,14 @@
+package config
+
+import (
+	"github.com/joho/godotenv"
+	"log"
+)
+
+// InitConfig initializes the application configuration
+func InitConfig() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Error loading .env file")
+	}
+}
