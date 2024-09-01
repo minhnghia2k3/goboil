@@ -1,4 +1,4 @@
-module goboil
+module github.com/minhnghia2k3/goboil
 
 go 1.22.5
 

@@ -1,12 +1,12 @@
 package cmd
 
 import (
+	"github.com/minhnghia2k3/goboil/frameworks"
+	"github.com/minhnghia2k3/goboil/frameworks/fiber"
+	"github.com/minhnghia2k3/goboil/frameworks/gfly"
+	"github.com/minhnghia2k3/goboil/frameworks/gin"
+	"github.com/minhnghia2k3/goboil/helpers"
 	"github.com/spf13/cobra"
-	"goboil/frameworks"
-	"goboil/frameworks/fiber"
-	"goboil/frameworks/gfly"
-	"goboil/frameworks/gin"
-	"goboil/helpers"
 	"log"
 	"os"
 )

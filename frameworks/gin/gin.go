@@ -2,8 +2,8 @@ package gin
 
 import (
 	_ "embed"
-	"goboil/frameworks"
-	"goboil/helpers"
+	"github.com/minhnghia2k3/goboil/frameworks"
+	"github.com/minhnghia2k3/goboil/helpers"
 	"os/exec"
 )
 

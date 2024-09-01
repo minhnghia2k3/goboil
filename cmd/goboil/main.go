@@ -1,7 +1,7 @@
 package main
 
 import (
-	"goboil/cmd"
+	"github.com/minhnghia2k3/goboil/cmd"
 	"log"
 )
 

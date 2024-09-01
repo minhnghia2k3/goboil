@@ -2,7 +2,7 @@ package gfly
 
 import (
 	"fmt"
-	"goboil/frameworks"
+	"github.com/minhnghia2k3/goboil/frameworks"
 )
 
 type Gfly struct {
