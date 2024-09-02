@@ -12,7 +12,7 @@ and boilerplate code, so you can start coding right away.
 ## 🔧 Installation
 To install `goboil`, run the following command:
 
-    go install -v github.com/minhnghia2k3/goboil/cmd/goboil@v0.1.2
+    go install -v github.com/minhnghia2k3/goboil/cmd/goboil@v0.1.3
 
 This command will download and install `goboil` as a binary into your `$GOPATH/bin` directory.
 

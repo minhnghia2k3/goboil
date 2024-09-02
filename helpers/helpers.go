@@ -171,7 +171,7 @@ func PromptModulePath() (string, error) {
 
 // CreateDir creates directory named path
 func CreateDir(path string) error {
-	if err := os.MkdirAll(path, os.ModeDir); err != nil {
+	if err := os.MkdirAll(path, 0o750); err != nil {
 		return fmt.Errorf("error creating directory %s: %v", path, err)
 	}
 	return nil
