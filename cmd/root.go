@@ -7,7 +7,6 @@ import (
 	"github.com/minhnghia2k3/goboil/frameworks/gin"
 	"github.com/minhnghia2k3/goboil/helpers"
 	"github.com/spf13/cobra"
-	"log"
 	"os"
 )
 
@@ -22,13 +21,13 @@ var rootCmd = &cobra.Command{
 		// Select a framework template
 		index, err := helpers.SelectTemplates()
 		if err != nil {
-			log.Fatal("Error selecting templates: ", err)
+			panic("Error selecting templates: " + err.Error())
 		}
 
 		// Prompt module name
 		module, err := helpers.PromptModulePath()
 		if err != nil {
-			log.Fatal("Error selecting module name: ", err)
+			panic("Error selecting module name: " + err.Error())
 		}
 
 		// Switch case build project structure for each template
@@ -46,7 +45,7 @@ var rootCmd = &cobra.Command{
 
 		// Build the project structure
 		if err := template.Build(); err != nil {
-			log.Fatal("Error building template: ", err)
+			panic("Error building template: " + err.Error())
 		}
 	},
 }

@@ -73,6 +73,11 @@ func ClearTerminal() error {
 		cmd.Stdout = os.Stdout
 		_ = cmd.Run()
 	}
+	cls["darwin"] = func() {
+		cmd := exec.Command("clear")
+		cmd.Stdout = os.Stdout
+		_ = cmd.Run()
+	}
 
 	value, ok := cls[runtime.GOOS] // runtime.GOOS -> linux, windows, darwin etc.
 	if ok {
