@@ -12,20 +12,25 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"text/template"
 	"time"
 )
 
-var Reset = "\033[0m"
-var Red = "\033[31m"
-var Green = "\033[32m"
-var Yellow = "\033[33m"
-var Blue = "\033[34m"
-var Magenta = "\033[35m"
-var Cyan = "\033[36m"
-var Gray = "\033[37m"
-var White = "\033[97m"
+// ANSI Color codes
+const (
+	Reset   = "\033[0m"
+	Red     = "\033[31m"
+	Green   = "\033[32m"
+	Yellow  = "\033[33m"
+	Blue    = "\033[34m"
+	Magenta = "\033[35m"
+	Cyan    = "\033[36m"
+	Gray    = "\033[37m"
+	White   = "\033[97m"
+)
 
+// Framework names
 const (
 	Gin   = "gin"
 	Fiber = "fiber"
@@ -137,13 +142,28 @@ func SelectTemplates() (int, error) {
 // PromptModulePath allows client type in module path.
 func PromptModulePath() (string, error) {
 	validate := func(input string) error {
+		input = strings.TrimSpace(input)
 		if input == "" {
-			return fmt.Errorf("please enter a valid module path")
+			return fmt.Errorf("module path cannot be empty")
 		}
 
 		if strings.Contains(input, " ") {
-			return fmt.Errorf("module path should not contain spaces")
+			return fmt.Errorf("module path cannot contain spaces")
 		}
+
+		// Check for invalid characters
+		invalidChars := []string{"\\", "\"", "'", "<", ">", "|", "?", "*"}
+		for _, char := range invalidChars {
+			if strings.Contains(input, char) {
+				return fmt.Errorf("module path cannot contain '%s'", char)
+			}
+		}
+
+		// Should have at least one dot for domain
+		if !strings.Contains(input, ".") && !strings.HasPrefix(input, "github.com/") {
+			return fmt.Errorf("module path should be a valid domain/path (e.g., example.com/my-project)")
+		}
+
 		return nil
 	}
 
@@ -155,18 +175,17 @@ func PromptModulePath() (string, error) {
 	}
 
 	prompt := promptui.Prompt{
-		Label:     "Your module path (e.g. example.com/my-project)",
+		Label:     "Your module path (e.g. github.com/username/my-project)",
 		Validate:  validate,
 		Templates: templates,
 	}
 
 	module, err := prompt.Run()
-
 	if err != nil {
-		return "", fmt.Errorf("Prompt failed %v\n", err)
+		return "", fmt.Errorf("failed to get module path: %w", err)
 	}
 
-	return module, nil
+	return strings.TrimSpace(module), nil
 }
 
 // CreateDir creates directory named path
@@ -204,6 +223,7 @@ func Loading(msg, finish string, done chan bool) {
 		select {
 		case <-done:
 			fmt.Println("\n" + finish)
+			return
 		default:
 			fmt.Printf("\b%s", string(spinner[i%len(spinner)]))
 			i++
@@ -239,63 +259,62 @@ func WriteFileFromTemplate(path string, tmplContent []byte, data interface{}) er
 }
 
 func FetchInfo() ([]framework, error) {
-	// curl -L   -H "Accept: application/vnd.github+json"
-	// https://api.github.com/repos/minhnghia2k3/green-light | jq '. | {stars: .watchers_count, description: .description}'
-	/*
-		[
-			gin: {
-				stars: int
-				description: string
-			}
-		]
-	*/
-	var result []framework
 	frameworks := []repository{
-		{
-			Owner: "gin-gonic",
-			Repo:  Gin,
-		},
-		{
-			Owner: "gofiber",
-			Repo:  Fiber,
-		},
-		{
-			Owner: "JiveIO",
-			Repo:  Gfly,
-		},
+		{Owner: "gin-gonic", Repo: Gin},
+		{Owner: "gofiber", Repo: Fiber},
+		{Owner: "JiveIO", Repo: Gfly},
 	}
 
-	for _, fr := range frameworks {
-		res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/%s", fr.Owner, fr.Repo))
-		if err != nil {
-			return nil, fmt.Errorf("Error fetching repo %v\n", err)
-		}
-		if res.StatusCode != http.StatusOK {
-			switch res.StatusCode {
-			case http.StatusForbidden:
-				return nil, fmt.Errorf("too many request to this resource, try again later")
-			case http.StatusNotFound:
-				return nil, fmt.Errorf("resource not found")
-			default:
-				return nil, fmt.Errorf("unexpected status code %v", res.StatusCode)
+	result := make([]framework, len(frameworks))
+	var wg sync.WaitGroup
+	errChan := make(chan error, len(frameworks))
+
+	for i, fr := range frameworks {
+		wg.Add(1)
+		go func(index int, repo repository) {
+			defer wg.Done()
+			
+			res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/%s", repo.Owner, repo.Repo))
+			if err != nil {
+				errChan <- fmt.Errorf("error fetching repo %s/%s: %w", repo.Owner, repo.Repo, err)
+				return
 			}
-		}
+			defer res.Body.Close()
 
-		// Read response body
-		body, err := io.ReadAll(res.Body)
-		if err != nil {
-			return nil, fmt.Errorf("Error fetching framework %s: %v\n", fr.Repo, err)
-		}
+			if res.StatusCode != http.StatusOK {
+				switch res.StatusCode {
+				case http.StatusForbidden:
+					errChan <- fmt.Errorf("too many requests to GitHub API, try again later")
+				case http.StatusNotFound:
+					errChan <- fmt.Errorf("repository %s/%s not found", repo.Owner, repo.Repo)
+				default:
+					errChan <- fmt.Errorf("unexpected status code %d for %s/%s", res.StatusCode, repo.Owner, repo.Repo)
+				}
+				return
+			}
 
-		// Unmarshal Golang struct
-		var info framework
-		err = json.Unmarshal(body, &info)
-		if err != nil {
-			return nil, fmt.Errorf("Error fetching framework %s: %v\n", fr.Repo, err)
-		}
+			body, err := io.ReadAll(res.Body)
+			if err != nil {
+				errChan <- fmt.Errorf("error reading response body for %s: %w", repo.Repo, err)
+				return
+			}
 
-		result = append(result, info)
-		_ = res.Body.Close()
+			var info framework
+			if err := json.Unmarshal(body, &info); err != nil {
+				errChan <- fmt.Errorf("error unmarshaling JSON for %s: %w", repo.Repo, err)
+				return
+			}
+
+			result[index] = info
+		}(i, fr)
+	}
+
+	wg.Wait()
+	close(errChan)
+
+	// Check if any errors occurred
+	if err := <-errChan; err != nil {
+		return nil, err
 	}
 
 	return result, nil

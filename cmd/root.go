@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/minhnghia2k3/goboil/frameworks"
 	"github.com/minhnghia2k3/goboil/frameworks/fiber"
 	"github.com/minhnghia2k3/goboil/frameworks/gfly"
@@ -14,20 +15,20 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "goboil",
 	Short: "A boilerplate support building application using famous web frameworks in Go.",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		// Send a greeting
 		helpers.Greeting()
 
 		// Select a framework template
 		index, err := helpers.SelectTemplates()
 		if err != nil {
-			panic("Error selecting templates: " + err.Error())
+			return fmt.Errorf("error selecting templates: %w", err)
 		}
 
 		// Prompt module name
 		module, err := helpers.PromptModulePath()
 		if err != nil {
-			panic("Error selecting module name: " + err.Error())
+			return fmt.Errorf("error getting module name: %w", err)
 		}
 
 		// Switch case build project structure for each template
@@ -40,13 +41,15 @@ var rootCmd = &cobra.Command{
 		case 2:
 			template = gfly.New(module)
 		default:
-			panic("Something gone wrong!")
+			return fmt.Errorf("invalid template index: %d", index)
 		}
 
 		// Build the project structure
 		if err := template.Build(); err != nil {
-			panic("Error building template: " + err.Error())
+			return fmt.Errorf("error building template: %w", err)
 		}
+
+		return nil
 	},
 }
 
@@ -60,8 +63,8 @@ func Execute() {
 }
 
 func init() {
-	err := helpers.ClearTerminal()
-	if err != nil {
-		panic(err)
+	if err := helpers.ClearTerminal(); err != nil {
+		// If terminal clearing fails, continue without panicking
+		fmt.Fprintf(os.Stderr, "Warning: could not clear terminal: %v\n", err)
 	}
 }

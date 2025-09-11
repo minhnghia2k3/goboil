@@ -3,8 +3,6 @@ package gin
 import (
 	_ "embed"
 	"github.com/minhnghia2k3/goboil/frameworks"
-	"github.com/minhnghia2k3/goboil/helpers"
-	"os/exec"
 )
 
 //go:embed templates/main.tmpl
@@ -29,24 +27,22 @@ var userController []byte
 var env []byte
 
 type Gin struct {
-	ModuleName string
+	*frameworks.BaseFramework
 }
 
 func New(moduleName string) frameworks.Template {
-	return &Gin{moduleName}
+	return &Gin{
+		BaseFramework: &frameworks.BaseFramework{
+			ModuleName: moduleName,
+			Name:       "Gin",
+		},
+	}
 }
 
 // Build builds project structure by initialize go module, making working directories, and writing files.
-func (f *Gin) Build() error {
-	directoryPaths := []string{
-		"./cmd",
-		"./config",
-		"./controllers",
-		"./middlewares",
-		"./models",
-		"./routes",
-	}
-
+func (g *Gin) Build() error {
+	directoryPaths := frameworks.GetStandardDirectories()
+	
 	files := map[string][]byte{
 		"./cmd/main.go":                     main,
 		"./config/config.go":                config,
@@ -57,39 +53,11 @@ func (f *Gin) Build() error {
 		".env":                              env,
 	}
 
-	done := make(chan bool)
-	go helpers.Loading("🔨 Creating project structure",
-		"🚀 Project structure built successfully", done)
-
-	// Init go.mod
-	err := helpers.InitModule(f.ModuleName)
-	if err != nil {
-		done <- true
-		return err
-	}
-
-	// Creating directories
-	for _, path := range directoryPaths {
-		err = helpers.CreateDir(path)
-		if err != nil {
-			done <- true
-			return err
-		}
-	}
-
-	// Writing files
-	for file, content := range files {
-		err = helpers.WriteFileFromTemplate(file, content, f)
-		if err != nil {
-			done <- true
-			return err
-		}
-	}
-
-	// Tidying module
-	_ = exec.Command("go", "mod", "tidy").Run()
-
-	done <- true
-
-	return nil
+	return g.BuildProject(
+		directoryPaths,
+		files,
+		"🔨 Creating Gin project structure",
+		"🚀 Gin project structure built successfully!",
+		g,
+	)
 }
